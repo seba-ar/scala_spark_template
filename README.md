@@ -1,13 +1,13 @@
 # SCALA SPARK TEMPLATE
 
-Este template se probó usando:
+This template was created using:
 
     - Scala 2.11.1
     - Java 1.8
     - Spark 2.4.7
     - SBT 1.10.11
 
-# Ejecutar con
+# Run with
 ```bash
 sbt run
 ```
