@@ -11,3 +11,8 @@ This template was created using:
 ```bash
 sbt run
 ```
+
+# Compile with
+```bash
+sbt clean compile assembly
+```
