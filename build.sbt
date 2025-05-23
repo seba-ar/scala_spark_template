@@ -1,5 +1,5 @@
-name := "example"
-organization := "example"
+name := "parse_cdr"
+organization := "altan_redes"
 version := "0.1"
 scalaVersion := "2.11.1"
 
