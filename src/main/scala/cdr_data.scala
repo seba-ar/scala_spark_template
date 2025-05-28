@@ -438,19 +438,20 @@ object CdrData {
     "src_cdr_no" -> col("src_cdr_no").cast(DecimalType(20, 0)),
     "status" -> col("status"),
     "re_rating_times" -> col("re_rating_times").cast(DecimalType(3, 0)),
-    "create_date" -> unix_timestamp(col("create_date"), "yyyyMMddHHmmss")
-      .cast("timestamp"),
-    "start_date" -> unix_timestamp(col("start_date"), "yyyyMMddHHmmss")
-      .cast("timestamp"),
-    "end_date" -> unix_timestamp(col("end_date"), "yyyyMMddHHmmss")
-      .cast("timestamp"),
-    "cust_local_start_date" -> unix_timestamp(
-      col("cust_local_start_date"),
-      "yyyyMMddHHmmss"
+    "create_date" -> expr(
+      "from_unixtime(unix_timestamp(cast(create_date AS STRING), 'yyyyMMddHHmmss'))"
     ).cast("timestamp"),
-    "cust_local_end_date" -> unix_timestamp(
-      col("cust_local_end_date"),
-      "yyyyMMddHHmmss"
+    "start_date" -> expr(
+      "from_unixtime(unix_timestamp(cast(start_date AS STRING), \"yyyyMMddHHmmss\"))"
+    ).cast("timestamp"),
+    "end_date" -> expr(
+      "from_unixtime(unix_timestamp(cast(end_date AS STRING), \"yyyyMMddHHmmss\"))"
+    ).cast("timestamp"),
+    "cust_local_start_date" -> expr(
+      "from_unixtime(unix_timestamp(cast(cust_local_start_date AS STRING), \"yyyyMMddHHmmss\"))"
+    ).cast("timestamp"),
+    "cust_local_end_date" -> expr(
+      "from_unixtime(unix_timestamp(cast(cust_local_end_date AS STRING), \"yyyyMMddHHmmss\"))"
     ).cast("timestamp"),
     "std_evt_type_id" -> col("std_evt_type_id").cast(DecimalType(10, 0)),
     "evt_source_category" -> col("evt_source_category"),
@@ -944,15 +945,13 @@ object CdrData {
       16,
       10
     ).cast("smallint"),
-    "timestamp_of_sgsn" -> unix_timestamp(
-      col("timestamp_of_sgsn"),
-      "yyyyMMddHHmmss"
+    "timestamp_of_sgsn" -> expr(
+      "from_unixtime(unix_timestamp(cast(timestamp_of_sgsn AS STRING), 'yyyyMMddHHmmss'))"
     ).cast("timestamp"),
     "timezone_of_sgsn" -> col("timezone_of_sgsn").cast(DecimalType(10, 0)),
     "bearer_capability" -> col("bearer_capability"),
-    "charging_time" -> unix_timestamp(
-      col("charging_time"),
-      "yyyyMMddHHmmss"
+    "charging_time" -> expr(
+      "from_unixtime(unix_timestamp(cast(charging_time AS STRING), 'yyyyMMddHHmmss'))"
     ).cast("timestamp"),
     "total_flux" -> col("total_flux").cast(DecimalType(20, 0)),
     "up_flux" -> col("up_flux").cast(DecimalType(20, 0)),
@@ -967,13 +966,11 @@ object CdrData {
     "bearer_protocol_type" -> col("bearer_protocol_type").cast(
       DecimalType(10, 0)
     ),
-    "start_timestamp" -> unix_timestamp(
-      col("start_timestamp"),
-      "yyyyMMddHHmmss"
+    "start_timestamp" -> expr(
+      "from_unixtime(unix_timestamp(cast(start_timestamp AS STRING), 'yyyyMMddHHmmss'))"
     ).cast("timestamp"),
-    "stop_timestamp" -> unix_timestamp(
-      col("stop_timestamp"),
-      "yyyyMMddHHmmss"
+    "stop_timestamp" -> expr(
+      "from_unixtime(unix_timestamp(cast(stop_timestamp AS STRING), 'yyyyMMddHHmmss'))"
     ).cast("timestamp"),
     "charging_id" -> col("charging_id"),
     "transition_id" -> col("transition_id"),
@@ -1011,9 +1008,8 @@ object CdrData {
       "string"
     ),
     "online_charging_flag" -> col("online_charging_flag").cast("tinyint"),
-    "start_time_of_billcycle" -> unix_timestamp(
-      col("start_time_of_billcycle"),
-      "yyyyMMddHHmmss"
+    "start_time_of_billcycle" -> expr(
+      "from_unixtime(unix_timestamp(cast(start_time_of_billcycle AS STRING), \"yyyyMMddHHmmss\"))"
     ).cast("timestamp"),
     "last_effect_offering" -> col("last_effect_offering").cast(
       DecimalType(20, 0)
@@ -1040,10 +1036,10 @@ object CdrData {
       lit(null: String)
     )
       .otherwise(col("fu_charging_offer_id")),
-    "filename" -> regexp_extract(col("filename"), ".*/(.*)", 1),
     "load_processing_timestamp" -> expr("now() - interval 6 hours"),
-    "load_processing_hour" -> date_format(current_timestamp(), "yyyyMMddHH")
-      .cast("int"),
+    "load_processing_hour" -> expr(
+      "cast(date_format(now(), \"yyyyMMddHH\") AS INT)"
+    ),
     "fu_bonus_offer_id" -> col("fu_bonus_offer_id"),
     "filler" -> col("filler"),
     "imei_str" -> col("imei"),
@@ -1494,6 +1490,7 @@ object CdrData {
       "reserved_2",
       "fu_charging_offer_id",
       "filename",
+      "raw_filename",
       "load_processing_timestamp",
       "load_processing_hour",
       "fu_bonus_offer_id",
@@ -1502,6 +1499,15 @@ object CdrData {
       "be_id",
       "billing_month",
       "event_hour"
+    )
+    .filter(
+      col("start_time_of_billcycle").isNotNull && col("start_time_of_billcycle") =!= "" &&
+      expr("CAST(SUBSTRING(start_time_of_billcycle, 1, 6) AS INT)").isNotNull &&
+      col("calling_party_imsi").isNotNull && col("calling_party_imsi") =!= "" &&
+      col("calling_party_number").isNotNull && col("calling_party_number") =!= "" &&
+      col("main_offering_id").isNotNull && col("main_offering_id") =!= "" &&
+      col("rating_group").isNotNull && col("rating_group") =!= "" &&
+      col("be_id").isNotNull && col("be_id") =!= ""
     )
   }
 }
